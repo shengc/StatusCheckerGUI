@@ -1,0 +1,4 @@
+* Run Form.py to start collecting immigration status from USCIS!
+* The range value is limited to be lower than 100, and the whole program is running in single thread. This is to prevent over crawling the website.
+* This software is distributed using PyInstaller
+	[PyInstallerPath]/pyinstaller.py -F -w Form.py
