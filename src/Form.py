@@ -27,6 +27,8 @@ class WxLog(logging.Handler):
         self.ctrl.AppendText(self.format(record)+"\n")
 
 class Frame(wx.Frame):
+    log_format = '%(asctime)-15s [%(levelname)s] -  %(message)s'
+    
     class RedirectText(object):
         def __init__(self,aWxTextCtrl):
             self.out=aWxTextCtrl
@@ -103,7 +105,7 @@ class Frame(wx.Frame):
         self.logr = logging.getLogger('')
         self.logr.setLevel(logging.INFO)
         hdlr = WxLog(self.log)
-        hdlr.setFormatter(logging.Formatter('[%(levelname)s] %(asctime)-15s:  %(message)s'))
+        hdlr.setFormatter(logging.Formatter(Frame.log_format))
         self.logr.addHandler(hdlr)
 
         sys.stdout = Frame.RedirectText(self.log)

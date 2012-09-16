@@ -91,22 +91,26 @@ class Checker(object):
         self.parser = MyHTMLParser()
     
     @staticmethod
-    def response(status_id):
+    def response(status_id, log=None):
         assert type(status_id) is str or type(status_id) is unicode, "status_id needs to be a string"
 
-        cj = cookielib.CookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-        urllib2.install_opener(opener)
+        opener = None
+        try:
+            cj = cookielib.CookieJar()
+            opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+            urllib2.install_opener(opener)
         
-        values = dict(appReceiptNum=status_id)
-        data = urllib.urlencode(values)
+            values = dict(appReceiptNum=status_id)
+            data = urllib.urlencode(values)
         
-        req = urllib2.Request(Checker.base_url, data)
-        res = opener.open(req) 
-        ret = res.read()
-        
-        opener.close()
-        return ret
+            req = urllib2.Request(Checker.base_url, data)
+            res = opener.open(req) 
+            return res.read()
+        except Exception as e:
+            if log is not None: log.error("error in processing status_id: %s" % str(e))
+            return ""
+        finally:
+            if opener is not None: opener.close()
 
     def validateCase(self, status_id):
         self.parser.feed(Checker.response(status_id))
@@ -121,11 +125,6 @@ class Checker(object):
             if not stats[stat[Checker.type_field]][stat[Checker.status_field]].has_key(stat[Checker.time_field]): stats[stat[Checker.type_field]][stat[Checker.status_field]][stat[Checker.time_field]] = 0
             stats[stat[Checker.type_field]][stat[Checker.status_field]][stat[Checker.time_field]] += 1
             return stats
-            
-#            if not stats[stat[Checker.type_field]].has_key(stat[Checker.time_field]): stats[stat[Checker.type_field]][stat[Checker.time_field]] = {} 
-#            if not stats[stat[Checker.type_field]][stat[Checker.time_field]].has_key(stat[Checker.status_field]): stats[stat[Checker.type_field]][stat[Checker.time_field]][stat[Checker.status_field]] = 0
-#            stats[stat[Checker.type_field]][stat[Checker.time_field]][stat[Checker.status_field]] += 1
-#            return stats
         
         mats = Checker.id_pattern.match(petition_id)
         string, number = mats.groups()
@@ -138,7 +137,7 @@ class Checker(object):
         log.info("Initialization Done! Start lower range search...")
         while count1 < query_range:
             status_id = "%s%d" % (string, (number - incrementor))
-            self.parser.feed(Checker.response(status_id))
+            self.parser.feed(Checker.response(status_id, log))
             stat = self.parser.get()
             if stat[self.type_field] in types:
                 if reduce(lambda x, y: x and y, [s is not None for s in stat.values()]):
@@ -225,16 +224,6 @@ class Plotter(object):
                     k = '%s:%s' % (y, p_stat)
                     if not d_data.has_key(k): d_data[k] = ([], self.color_generator.get())
                     d_data[k][0].extend([m] * stats[p_type][p_stat][p_time]) 
-            
-#            for p_time in stats[p_type].iterkeys():
-#                t = strptime(p_time, "%B %d, %Y")
-#                y = t[0]
-#                m = t[1]
-#                
-#                for p_stat in stats[p_type][p_time]:
-#                    k = '%s:%s' % (y, p_stat)
-#                    if not d_data.has_key(k): d_data[k] = ([], self.color_generator.get())
-#                    d_data[k][0].extend([m] * stats[p_type][p_time][p_stat])
             
             sort_keys = sorted(d_data.keys())
                 
