@@ -236,8 +236,11 @@ class Plotter(object):
         pylab.show() 
 
 if __name__ == '__main__':
+    import logging as log
+    log.basicConfig(level=log.INFO)
+    
     checker = Checker()
-    stats = checker.taskManager('SRC1280014743', 20, ['I140', 'I485'])
+    stats = checker.taskManager('SRC1280014743', 20, ['I140', 'I485'], log)
     print stats
     plotter = Plotter()
     plotter.plot(stats, ['I140'])
